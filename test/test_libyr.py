@@ -76,6 +76,5 @@ class TestLibYr(unittest.TestCase):
         self.assertEqual(weatherdata.now(), expecting)
 
 
-
 if __name__ == '__main__':
     unittest.main()
