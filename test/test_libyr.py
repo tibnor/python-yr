@@ -61,9 +61,8 @@ class TestLibYr(unittest.TestCase):
         # Use this to generate new test file
         # with open('test_dict.py','w') as f:
         #    f.write(str(weatherdata.dictionary))
-        from test_dict import tyholt_dictionary
+        from test.test_dict import tyholt_dictionary
         weatherdata.dictionary = tyholt_dictionary
-        print(weatherdata.now())
         expecting = OrderedDict([('@from', '2018-03-18T11:00:00'), ('@to', '2018-03-18T12:00:00'), (
         'symbol', OrderedDict([('@number', '12'), ('@numberEx', '47'), ('@name', 'Light sleet'), ('@var', '47')])), (
                                  'precipitation',
