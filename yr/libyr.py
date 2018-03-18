@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-
-import logging
 import json
+
 import xmltodict  # <~ the only external dependency
-from yr.utils import Connect, Location, API_Locationforecast, Language, YrException
+
+from yr.utils import Connect, Location, ApiLocationForecast, Language, YrException
 
 
 class Yr:
@@ -11,13 +11,16 @@ class Yr:
     default_forecast_link = 'forecast'
     default_language_name = 'en'
 
-    def py2json(self, python):
+    @staticmethod
+    def py2json(python):
         return json.dumps(python, indent=4)
 
-    def xml2dict(self, xml):
+    @staticmethod
+    def xml2dict(xml):
         return xmltodict.parse(xml)
 
-    def dict2xml(self, dictionary):
+    @staticmethod
+    def dict2xml(dictionary):
         return xmltodict.unparse(dictionary, pretty=True)
 
     def py2result(self, python, as_json=False):  # default is return result as dictionary ;)
@@ -64,11 +67,10 @@ class Yr:
         elif coordinates:
             self.location_name = None
             self.coordinates = coordinates
-            self.location = API_Locationforecast(
+            self.location = ApiLocationForecast(
                 lat=self.coordinates[0],
                 lon=self.coordinates[1],
-                msl=self.coordinates[2],
-                language=self.language,
+                msl=self.coordinates[2]
             )
         else:
             raise YrException('location_name or location_xyz parameter must be set')
@@ -77,9 +79,3 @@ class Yr:
         self.xml_source = self.connect.read()
         self.dictionary = self.xml2dict(self.xml_source)
         self.credit = self.language.dictionary['credit']
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.info('starting __main__')
-
-    logging.info('stopping __main__')

@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
+import datetime  # Cache
+import json  # Language
 import logging
 import os.path
-import json  # Language
 import tempfile  # Cache
-import datetime  # Cache
-import urllib.request  # Connect
 import urllib.parse  # Location
+import urllib.request  # Connect
+
 import xmltodict
 
 log = logging.getLogger(__name__)
 
 
 class YrObject:
-
     script_directory = os.path.dirname(os.path.abspath(__file__))  # directory of the script
     encoding = 'utf-8'
 
@@ -21,12 +21,11 @@ class YrObject:
 class YrException(Exception):
 
     def __init__(self, message):
+        super(self, message)
         log.error(message)
-        raise
 
 
 class Language(YrObject):
-
     directory = 'languages'
     default_language_name = 'en'
     extension = 'json'
@@ -53,7 +52,6 @@ class Language(YrObject):
 
 
 class Location(YrObject):
-
     base_url = 'http://www.yr.no/'
     default_forecast_link = 'forecast'
     forecast_links = [default_forecast_link, 'forecast_hour_by_hour']
@@ -87,23 +85,20 @@ class Location(YrObject):
         )
 
 
-class API_Locationforecast(YrObject):
-
+class ApiLocationForecast(YrObject):
     """Class to use the API of api.met.no"""
 
     base_url = 'https://api.met.no/weatherapi/locationforecast/1.9/?'
     forecast_link = 'locationforecast'
 
-    def __init__(self, lat, lon, msl=0, language=False):
+    def __init__(self, lat, lon, msl=0):
         """
         :param double lat: latitude coordinate
         :param double lon: longitude coordinate
         :param double msl: altitude (meters above sea level)
-        :param language: a Language object
         """
         self.coordinates = dict(lat=lat, lon=lon, msl=msl)
         self.location_name = 'lat={lat};lon={lon};msl={msl}'.format(**self.coordinates)
-        # self.language = language if isinstance(language, Language) else Language()
         self.url = self.get_url()
         self.hash = self.get_hash()
 
@@ -122,20 +117,6 @@ class API_Locationforecast(YrObject):
         )
 
 
-class LocationXYZ(API_Locationforecast):  # ~> Deprecated!!!
-
-    """Class to use the API of yr.no"""
-
-    def __init__(self, x, y, z=0, language=False):
-        """
-        :param double x: longitude coordinate
-        :param double y: latitude coordinate
-        :param double z: altitude (meters above sea level)
-        :param language: a Language object
-        """
-        super().__init__(y, x, z, language)
-
-
 class Connect(YrObject):
 
     def __init__(self, location):
@@ -152,7 +133,7 @@ class Connect(YrObject):
                 log.info('read online: {}'.format(self.location.url))
                 response = urllib.request.urlopen(self.location.url)
                 if response.status != 200:
-                    raise
+                    raise ConnectionError("Wrong status from backend")
                 weatherdata = response.read().decode(self.encoding)
                 cache.dump(weatherdata)
             else:
@@ -163,7 +144,6 @@ class Connect(YrObject):
 
 
 class Cache(YrObject):
-
     directory = tempfile.gettempdir()
     extension = 'xml'
     timeout = 15  # cache timeout in minutes
@@ -187,7 +167,7 @@ class Cache(YrObject):
         xmldata = self.load()
         d = xmltodict.parse(xmldata)
         meta = d['weatherdata']['meta']
-        if isinstance(self.location, API_Locationforecast):
+        if isinstance(self.location, ApiLocationForecast):
             if isinstance(meta['model'], dict):
                 next_update = meta['model']['@nextrun']
             elif isinstance(meta['model'], list):
@@ -197,7 +177,7 @@ class Cache(YrObject):
             next_update = next_update.replace("Z", " +0000")
             date_format = "%Y-%m-%dT%H:%M:%S %z"
             # Read the UTC timestamp, convert to local time and remove the timezone information.
-            valid_until = datetime.datetime.strptime(next_update,date_format)
+            valid_until = datetime.datetime.strptime(next_update, date_format)
             valid_until = valid_until.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None).replace(tzinfo=None)
         else:
             next_update = meta['nextupdate']
@@ -223,31 +203,3 @@ class Cache(YrObject):
         if os.path.isfile(self.filename):
             os.remove(self.filename)
             log.info('removed cachefile: {}'.format(self.filename))
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.info('starting __main__')
-
-    weatherdata = Connect(Location(
-        location_name='Czech_Republic/Prague/Prague',
-        forecast_link='forecast',
-        language=Language(language_name='en'),
-    )).read()
-    # print(weatherdata)
-
-    weatherdata = Connect(Location(
-        location_name='Czech_Republic/Prague/Prague',
-        forecast_link='forecast_hour_by_hour',
-        language=Language(language_name='en'),
-    )).read()
-    # print(weatherdata)
-
-    weatherdata = Connect(API_Locationforecast(
-        50.0596696,
-        14.4656239,
-        11,
-        language=Language(language_name='en'),
-    )).read()
-    # print(weatherdata)
-
-    logging.info('stopping __main__')
