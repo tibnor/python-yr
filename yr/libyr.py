@@ -82,36 +82,4 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.info('starting __main__')
 
-    weatherdata = Yr(
-        location_name='Czech_Republic/Prague/Prague',
-        forecast_link='forecast',
-        language_name='en',
-    ).now(as_json=True)
-    # print(weatherdata)
-
-    weatherdata = Yr(
-        location_name='Czech_Republic/Prague/Prague',
-        forecast_link='forecast_hour_by_hour',
-        language_name='en',
-    ).now(as_json=True)
-    # print(weatherdata)
-
-    weatherdata = Yr(
-        location_xyz=(14.4656239, 50.0596696, 11),
-        language_name='en',
-    ).now(as_json=True)
-    # print(weatherdata)
-
-    weatherdata = Yr(
-        coordinates=(50.0596696, 14.4656239, 11),
-        language_name='en',
-    ).now(as_json=True)
-    # print(weatherdata)
-
-    weatherdata = Yr(
-        coordinates=(63.4066631, 10.4426724, 10),
-        language_name='en'
-    ).now(as_json=True)
-    # print(weatherdata)
-
     logging.info('stopping __main__')
